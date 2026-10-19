@@ -1,73 +1,74 @@
-"""Решение биквадратного уравнения с использованием match-case."""
+"""Решение биквадратного уравнения с помощью match-case."""
 
 import math
 import sys
 
 
-def read_number(name, value=None):
-    if value is not None:
+def get_number(name, argument=None):
+    if argument is not None:
         try:
-            return float(value)
+            return float(argument)
         except ValueError:
-            print(f"Значение {name} в командной строке некорректно.")
+            print(f"Аргумент {name} должен быть числом. Введите его вручную.")
 
     while True:
         try:
-            return float(input(f"Введите коэффициент {name}: ").replace(',', '.'))
+            return float(input(f"Введите {name}: ").replace(',', '.'))
         except ValueError:
-            print("Ошибка: нужно ввести число.")
+            print("Ошибка: введите число.")
 
 
-def add_root(roots, root):
-    if not any(math.isclose(root, old_root) for old_root in roots):
-        roots.append(root)
-
-
-def solve_equation(a, b, c):
-    """Решить уравнение, используя сопоставление с образцом для случаев D."""
+def solve(a, b, c):
+    # Замена y = x^2 превращает уравнение в A*y^2 + B*y + C = 0.
     if a == 0:
-        y_values = [] if b == 0 else [-c / b]
         discriminant = None
+        if b == 0:
+            if c == 0:
+                return discriminant, None
+            return discriminant, []
+        y_values = [-c / b]
     else:
-        discriminant = b * b - 4 * a * c
+        discriminant = b ** 2 - 4 * a * c
+
+        # Выбираем способ вычисления y по значению дискриминанта.
         match discriminant:
-            case d if d < 0:
+            case value if value < 0:
                 return discriminant, []
             case 0:
                 y_values = [-b / (2 * a)]
             case _:
-                d = math.sqrt(discriminant)
-                y_values = [
-                    (-b + d) / (2 * a),
-                    (-b - d) / (2 * a),
-                ]
+                y1 = (-b + math.sqrt(discriminant)) / (2 * a)
+                y2 = (-b - math.sqrt(discriminant)) / (2 * a)
+                y_values = [y1, y2]
 
     roots = []
     for y in y_values:
+        # Для положительного y есть два корня x, для нуля — один.
         match y:
             case value if value > 0:
-                root = math.sqrt(value)
-                add_root(roots, root)
-                add_root(roots, -root)
-            case value if math.isclose(value, 0):
-                add_root(roots, 0.0)
+                roots.append(math.sqrt(y))
+                roots.append(-math.sqrt(y))
+            case 0:
+                roots.append(0)
 
     return discriminant, sorted(roots)
 
 
 def main():
-    arguments = sys.argv[1:4]
-    values = []
-    for index, name in enumerate(['A', 'B', 'C']):
-        value = arguments[index] if index < len(arguments) else None
-        values.append(read_number(name, value))
+    args = sys.argv[1:]
+    a = get_number('A', args[0] if len(args) > 0 else None)
+    b = get_number('B', args[1] if len(args) > 1 else None)
+    c = get_number('C', args[2] if len(args) > 2 else None)
 
-    discriminant, roots = solve_equation(*values)
-    print(f"Дискриминант: {discriminant}")
-    if roots:
-        print("Действительные корни:", *roots)
+    discriminant, roots = solve(a, b, c)
+    print('Дискриминант:', discriminant)
+
+    if roots is None:
+        print('Корни: любое действительное число')
+    elif roots:
+        print('Действительные корни:', roots)
     else:
-        print("Действительных корней нет.")
+        print('Действительных корней нет')
 
 
 if __name__ == '__main__':

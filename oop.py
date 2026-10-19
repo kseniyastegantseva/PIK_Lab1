@@ -1,81 +1,78 @@
-"""Решение биквадратного уравнения объектно-ориентированным способом."""
+"""Решение биквадратного уравнения с помощью класса."""
 
 import math
 import sys
 
 
-class BiquadraticEquation:
-    """Биквадратное уравнение A*x^4 + B*x^2 + C = 0."""
+def get_number(name, argument=None):
+    if argument is not None:
+        try:
+            return float(argument)
+        except ValueError:
+            print(f"Аргумент {name} должен быть числом. Введите его вручную.")
 
+    while True:
+        try:
+            return float(input(f"Введите {name}: ").replace(',', '.'))
+        except ValueError:
+            print("Ошибка: введите число.")
+
+
+class Equation:
     def __init__(self, a, b, c):
+        # Коэффициенты сохраняются внутри объекта.
         self.a = a
         self.b = b
         self.c = c
         self.discriminant = None
 
-    def _add_root(self, roots, root):
-        if not any(math.isclose(root, old_root) for old_root in roots):
-            roots.append(root)
-
     def solve(self):
-        """Вычислить и вернуть список действительных корней."""
+        # Замена y = x^2 превращает уравнение в A*y^2 + B*y + C = 0.
         if self.a == 0:
             if self.b == 0:
+                if self.c == 0:
+                    return None  # любое число подходит
                 return []
             y_values = [-self.c / self.b]
         else:
             self.discriminant = self.b ** 2 - 4 * self.a * self.c
+
             if self.discriminant < 0:
                 return []
-            if math.isclose(self.discriminant, 0):
+            elif self.discriminant == 0:
                 y_values = [-self.b / (2 * self.a)]
             else:
-                d = math.sqrt(self.discriminant)
-                y_values = [
-                    (-self.b + d) / (2 * self.a),
-                    (-self.b - d) / (2 * self.a),
-                ]
+                y1 = (-self.b + math.sqrt(self.discriminant)) / (2 * self.a)
+                y2 = (-self.b - math.sqrt(self.discriminant)) / (2 * self.a)
+                y_values = [y1, y2]
 
         roots = []
         for y in y_values:
             if y > 0:
-                value = math.sqrt(y)
-                self._add_root(roots, value)
-                self._add_root(roots, -value)
-            elif math.isclose(y, 0):
-                self._add_root(roots, 0.0)
+                roots.append(math.sqrt(y))
+                roots.append(-math.sqrt(y))
+            elif y == 0:
+                roots.append(0)
 
         return sorted(roots)
 
 
-def read_number(name, value=None):
-    if value is not None:
-        try:
-            return float(value)
-        except ValueError:
-            print(f"Значение {name} в командной строке некорректно.")
-
-    while True:
-        try:
-            return float(input(f"Введите коэффициент {name}: ").replace(',', '.'))
-        except ValueError:
-            print("Ошибка: нужно ввести число.")
-
-
 def main():
-    arguments = sys.argv[1:4]
-    values = []
-    for index, name in enumerate(['A', 'B', 'C']):
-        value = arguments[index] if index < len(arguments) else None
-        values.append(read_number(name, value))
+    args = sys.argv[1:]
+    a = get_number('A', args[0] if len(args) > 0 else None)
+    b = get_number('B', args[1] if len(args) > 1 else None)
+    c = get_number('C', args[2] if len(args) > 2 else None)
 
-    equation = BiquadraticEquation(*values)
+    equation = Equation(a, b, c)
     roots = equation.solve()
-    print(f"Дискриминант: {equation.discriminant}")
-    if roots:
-        print("Действительные корни:", *roots)
+    print('Дискриминант:', equation.discriminant)
+
+    if roots is None:
+        print('Корни: любое действительное число')
+    elif roots:
+        print('Действительные корни:', roots)
     else:
-        print("Действительных корней нет.")
+        print('Действительных корней нет')
 
 
 if __name__ == '__main__':
